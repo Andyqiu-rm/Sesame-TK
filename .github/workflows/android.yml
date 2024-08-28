@@ -1,26 +1,29 @@
-名称： Android CI
-
-在：
-  推：
-    修改：[     “主要”     ]
-  答案：
-    修改：[     “主要”     ]
-
-工作：
-  建造：
-
-    运行于： ubuntu-latest
-
-    步骤：
-    - 用途： actions/checkout@v4
-    -名称：设置JDK 11
-      用途： actions/setup-java@v4
-      和：
-        Java 版本： '11'
-        分布： 'temurin'
-        缓存： gradle
-
-    -name  :授予 gradlew 执行权限
-      运行： chmod +x gradlew
-    -名称：使用Gradle构建
-      运行： ./gradlew build
+name: Android CI
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew assembleDebug
+      - name: Upload to Release Action
+        uses: Shopify/upload-to-release@v1.0.1
+        with:
+          name: app-${{ github.event.release.tag_name }}.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          repo-token: ${{ github.token }}
+          content-type: application/zip
